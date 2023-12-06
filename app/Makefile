@@ -20,3 +20,6 @@ check-deps:
 
 report:
 	./gradlew test jacocoTestReport
+
+run:
+	./build/install/app/bin/app
