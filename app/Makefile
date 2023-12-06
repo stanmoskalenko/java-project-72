@@ -1,7 +1,7 @@
 .PHONY: build
 
 setup:
-	./gradlew wrapper --gradle-version 8.4
+	./gradlew wrapper --gradle-version 8.2
 
 build:
 	./gradlew clean build
@@ -22,4 +22,4 @@ report:
 	./gradlew test jacocoTestReport
 
 run:
-	./build/install/app/bin/app
+	docker build -t sanmoskalenko/page-analazer:latest .
