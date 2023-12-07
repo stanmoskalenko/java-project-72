@@ -16,7 +16,7 @@ public class App {
     private static final String H2_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
 
     private static String readResourceFile(String fileName) throws IOException {
-        var path = Paths.get("src", "main", "resources", fileName);
+        var path = Paths.get("resources", "main", fileName);
         return Files.readString(path);
     }
 
