@@ -9,7 +9,6 @@ COPY . .
 
 RUN ./gradlew clean build --no-daemon
 
-
 FROM bellsoft/liberica-openjdk-debian:latest
 LABEL name="san-page-analyzer"
 ENV ARTIFACT_NAME=app-20-all.jar
