@@ -1,8 +1,5 @@
 .PHONY: build
 
-setup:
-	./gradlew wrapper --gradle-version 8.2
-
 build:
 	./gradlew clean build
 
@@ -15,11 +12,8 @@ lint:
 test:
 	./gradlew test
 
-check-deps:
-	./gradlew dependencyUpdates -Drevision=release
-
 report:
 	./gradlew test jacocoTestReport
 
-run:
+image:
 	docker build -t sanmoskalenko/page-analazer:latest .

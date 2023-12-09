@@ -14,7 +14,6 @@ group = "hexlet.code"
 version = "1.0-SNAPSHOT"
 application.mainClass.set("hexlet.code.App")
 repositories.mavenCentral()
-
 tasks.compileJava {
     version = 20
 }
@@ -34,6 +33,10 @@ tasks.test {
 
 tasks.jacocoTestReport {
     reports.xml.required = true
+}
+
+sourceSets.main {
+    resources.srcDirs("resources/migrations")
 }
 
 dependencies {

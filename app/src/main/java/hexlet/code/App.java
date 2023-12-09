@@ -4,39 +4,25 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.controller.UrlController;
 import hexlet.code.repository.BaseRepository;
+import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class App {
-    private static final Integer DEFAULT_PORT = 7070;
-    private static final String H2_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
 
-    private static String readResourceFile(String fileName) throws IOException {
-        var path = Paths.get("resources", "main", fileName);
-        return Files.readString(path);
-    }
-
-    private static String getDbUrl() {
-        var env = System.getenv("JDBC_DATABASE_URL");
-        return env == null ? H2_URL : env;
-    }
-
-    private static Integer getAppPort() {
-        var env = System.getenv("PORT");
-        return env == null ? DEFAULT_PORT : Integer.parseInt(env);
+    private static String readResourceFile() throws IOException {
+        return Files.readString(Environment.SCHEMA_PATH);
     }
 
     private static void prepareDb() throws Exception {
-        var url = getDbUrl();
         var hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(url);
+        hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
         var dataSource = new HikariDataSource(hikariConfig);
-        var sql = readResourceFile("schema.sql");
+        var sql = readResourceFile();
 
         try (var connection = dataSource.getConnection();
              var statement = connection.createStatement()) {
@@ -62,8 +48,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        var port = getAppPort();
         Javalin app = getApp();
-        app.start(port);
+        app.start(Environment.APP_PORT);
     }
 }
