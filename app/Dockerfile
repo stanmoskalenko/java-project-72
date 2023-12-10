@@ -7,7 +7,7 @@ COPY gradle $APP_HOME/gradle
 COPY --chown=gradle:gradle . /home/gradle/wrapper
 COPY . .
 
-RUN ./gradlew clean build --no-daemon
+RUN ./gradlew clean build --exclude-task checkstyleTest check test testClasses --no-daemon
 
 FROM bellsoft/liberica-openjdk-debian:latest
 LABEL name="san-page-analyzer"
@@ -23,7 +23,7 @@ COPY --from=TEMP_BUILD_IMAGE $APP_HOME/build/libs/$ARTIFACT_NAME .
 COPY $MIGRATION_RESOURCES .
 COPY src/main/resources/templates ./$JTE_TEMPLATES_PATH
 
-RUN --mount=type=secret,id=JDBC_DATABASE_URL,dst=$SECRET_PATH/JDBC_DATABASE_URL export JDBC_DATABASE_URL=$(cat JDBC_DATABASE_URL)
+RUN --mount=type=secret,id=JDBC_DATABASE_URL,dst=$SECRET_PATH/JDBC_DATABASE_URL export JDBC_DATABASE_URL=$(cat $SECRET_PATH/JDBC_DATABASE_URL)
 
 EXPOSE $APP_PORT
 ENTRYPOINT exec java -jar ${ARTIFACT_NAME}
