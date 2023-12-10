@@ -56,6 +56,7 @@ dependencies {
 
     // db
     implementation("com.h2database:h2:2.2.222")
+    implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
 
     // Test deps
