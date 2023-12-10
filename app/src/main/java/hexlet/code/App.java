@@ -28,8 +28,6 @@ public class App {
         hikariConfig.setDriverClassName(Environment.JDBC_DRIVER);
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
-        LOGGER.info("DB => " + Environment.JDBC_DATABASE_URL);
-
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
 
