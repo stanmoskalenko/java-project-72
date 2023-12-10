@@ -7,7 +7,7 @@ COPY gradle $APP_HOME/gradle
 COPY --chown=gradle:gradle . /home/gradle/wrapper
 COPY . .
 
-RUN ./gradlew clean build --exclude-task checkstyleTest check test testClasses --no-daemon
+RUN ./gradlew clean build --no-daemon
 
 FROM bellsoft/liberica-openjdk-debian:latest
 LABEL name="san-page-analyzer"
