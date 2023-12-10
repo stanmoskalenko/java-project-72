@@ -24,6 +24,9 @@ public class App {
         var hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
+        System.out.println("DB => " + Environment.JDBC_DATABASE_URL);
+        System.out.println("all envs => " + System.getenv());
+
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
 
