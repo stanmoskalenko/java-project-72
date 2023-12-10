@@ -36,7 +36,7 @@ tasks.jacocoTestReport {
 }
 
 sourceSets.main {
-    resources.srcDirs("resources/migrations")
+    resources.srcDirs("app/src/main/resources")
 }
 
 dependencies {

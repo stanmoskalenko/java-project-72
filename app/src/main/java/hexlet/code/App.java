@@ -7,9 +7,12 @@ import hexlet.code.repository.BaseRepository;
 import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
+import io.javalin.rendering.template.JavalinJte;
 
 import java.io.IOException;
 import java.nio.file.Files;
+
+import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
 public class App {
 
@@ -32,6 +35,8 @@ public class App {
     }
 
     public static Javalin getApp() {
+        JavalinJte.init(createTemplateEngine());
+
         try {
             prepareDb();
         } catch (Exception e) {
