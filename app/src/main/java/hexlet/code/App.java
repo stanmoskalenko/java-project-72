@@ -8,6 +8,8 @@ import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +17,7 @@ import java.nio.file.Files;
 import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
 public class App {
+    private static Logger logger = LoggerFactory.getLogger(App.class);
 
     private static String readResourceFile() throws IOException {
         return Files.readString(Environment.SCHEMA_PATH);
@@ -24,8 +27,7 @@ public class App {
         var hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
-        System.out.println("DB => " + Environment.JDBC_DATABASE_URL);
-        System.out.println("all envs => " + System.getenv());
+        logger.info("DB => " + Environment.JDBC_DATABASE_URL);
 
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
@@ -34,6 +36,7 @@ public class App {
              var statement = connection.createStatement()) {
             statement.execute(sql);
         }
+
         BaseRepository.dataSource = dataSource;
     }
 
@@ -45,12 +48,13 @@ public class App {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        try (var app = Javalin.create(cfg -> cfg.plugins.enableDevLogging())) {
+        try (var app = Javalin.create()) {
             app.get(NamedRoutes.index(), ctx -> ctx.render("index.jte"));
             app.get(NamedRoutes.urlsPath(), UrlController::index);
             app.get(NamedRoutes.urlPath("{id}"), UrlController::show);
             app.post(NamedRoutes.urlsPath(), UrlController::create);
 
+            logger.info("App started");
             return app;
         }
     }

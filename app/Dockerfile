@@ -16,15 +16,13 @@ ENV APP_HOME=/usr/app/
 ENV MIGRATION_RESOURCES=src/main/resources/migrations/schema.sql
 ENV JTE_TEMPLATES_PATH=templates
 ENV SCHEMA_PATH=schema.sql
-ENV APP_PORT=8080
-
+ENV SECRET_PATH=/etc/secrets
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/build/libs/$ARTIFACT_NAME .
 COPY $MIGRATION_RESOURCES .
 COPY src/main/resources/templates ./$JTE_TEMPLATES_PATH
 
 # render Secrets
-RUN --mount=type=secret,id=JDBC_DATABASE_URL,dst=/etc/secrets/JDBC_DATABASE_URL cat /etc/secrets/JDBC_DATABASE_URL
+RUN --mount=type=secret,id=JDBC_DATABASE_URL,dst=$SECRET_PATH/JDBC_DATABASE_URL
 
-EXPOSE $APP_PORT
 ENTRYPOINT exec java -jar ${ARTIFACT_NAME}

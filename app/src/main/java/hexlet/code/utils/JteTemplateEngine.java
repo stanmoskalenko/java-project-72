@@ -8,7 +8,7 @@ import hexlet.code.App;
 public class JteTemplateEngine {
     public static TemplateEngine createTemplateEngine() {
         ClassLoader classLoader = App.class.getClassLoader();
-        ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates", classLoader);
+        ResourceCodeResolver codeResolver = new ResourceCodeResolver(Environment.TEMPLATE_PATH, classLoader);
         return TemplateEngine.create(codeResolver, ContentType.Html);
     }
 }
