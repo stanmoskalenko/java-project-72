@@ -23,5 +23,9 @@ COPY --from=TEMP_BUILD_IMAGE $APP_HOME/build/libs/$ARTIFACT_NAME .
 COPY $MIGRATION_RESOURCES .
 COPY src/main/resources/templates ./$JTE_TEMPLATES_PATH
 
+# render Secrets
+RUN --mount=type=secret,id=JDBC_DATABASE_URL,dst=/etc/secrets/JDBC_DATABASE_URL cat /etc/secrets/JDBC_DATABASE_URL
+RUN --mount=type=secret,id=PORT,dst=/etc/secrets/PORT cat /etc/secrets/PORT
+
 EXPOSE $APP_PORT
 ENTRYPOINT exec java -jar ${ARTIFACT_NAME}
