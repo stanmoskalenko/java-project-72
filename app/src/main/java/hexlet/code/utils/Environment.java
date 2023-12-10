@@ -8,6 +8,9 @@ public class Environment {
     private static final String DEFAULT_JTE_TEMPLATE_PATH = "templates";
     private static final String DEFAULT_APP_PORT = "7070";
 
+    public static final String JDBC_DRIVER = System.getenv("JDBC_DATABASE_URL") != null
+            ? "org.postgresql.Driver"
+            : "org.h2.Driver";
     public static final String JDBC_DATABASE_URL = System.getenv().getOrDefault("JDBC_DATABASE_URL", H2_URL);
     public static final Path SCHEMA_PATH = Path.of(
             System.getenv().getOrDefault("SCHEMA_PATH", DEFAULT_SCHEMA_PATH)).toAbsolutePath().normalize();

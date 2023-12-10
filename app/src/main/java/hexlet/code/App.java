@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
 public class App {
-    private static Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     private static String readResourceFile() throws IOException {
         return Files.readString(Environment.SCHEMA_PATH);
@@ -25,9 +25,10 @@ public class App {
 
     private static void prepareDb() throws Exception {
         var hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(Environment.JDBC_DRIVER);
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
-        logger.info("DB => " + Environment.JDBC_DATABASE_URL);
+        LOGGER.info("DB => " + Environment.JDBC_DATABASE_URL);
 
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
@@ -54,7 +55,7 @@ public class App {
             app.get(NamedRoutes.urlPath("{id}"), UrlController::show);
             app.post(NamedRoutes.urlsPath(), UrlController::create);
 
-            logger.info("App started");
+            LOGGER.info("App started");
             return app;
         }
     }
