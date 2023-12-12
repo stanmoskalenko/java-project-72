@@ -10,19 +10,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      APP_HOME: app
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Java20
         uses: actions/setup-java@v3
         with:
           distribution: corretto
           java-version: 20
-          
+
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          build-root-directory: app
+          build-root-directory: ${{ env.APP_HOME }}
           gradle-version: 8.2
           arguments: build
 
@@ -30,8 +33,11 @@ jobs:
         uses: paambaati/codeclimate-action@v5.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-          JACOCO_SOURCE_PATH: ${{github.workspace}}/app/src/main/java
+          JACOCO_SOURCE_PATH: ${{ github.workspace }}/app/src/main/java
         with:
-          workingDirectory: app
+          workingDirectory: ${{ env.APP_HOME }}
           coverageCommand: make report
-          coverageLocations: ${{github.workspace}}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          coverageLocations: ${{ github.workspace }}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+
+      - name: Deploy
+        run: curl ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
