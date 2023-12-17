@@ -41,6 +41,7 @@ sourceSets.main {
 
 dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
+    implementation("net.datafaker:datafaker:2.0.1")
 
     // api
     implementation("io.javalin:javalin-bundle:5.6.2")
@@ -58,8 +59,11 @@ dependencies {
     implementation("com.h2database:h2:2.2.222")
     implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("org.instancio:instancio-junit:3.3.0")
 
     // Test deps
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("com.konghq:unirest-java:3.14.2")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.2")

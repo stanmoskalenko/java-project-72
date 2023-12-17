@@ -5,11 +5,10 @@ import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.controller.UrlController;
 import hexlet.code.repository.BaseRepository;
 import hexlet.code.utils.Environment;
+import hexlet.code.utils.JtePagePath;
 import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +16,6 @@ import java.nio.file.Files;
 import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
 public class App {
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     private static String readResourceFile() throws IOException {
         return Files.readString(Environment.SCHEMA_PATH);
@@ -47,13 +45,11 @@ public class App {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        try (var app = Javalin.create()) {
-            app.get(NamedRoutes.index(), ctx -> ctx.render("index.jte"));
+        try (var app = Javalin.create(cfg -> cfg.plugins.enableDevLogging())) {
+            app.get(NamedRoutes.index(), ctx -> ctx.render(JtePagePath.INDEX));
             app.get(NamedRoutes.urlsPath(), UrlController::index);
             app.get(NamedRoutes.urlPath("{id}"), UrlController::show);
             app.post(NamedRoutes.urlsPath(), UrlController::create);
-
-            LOGGER.info("App started");
             return app;
         }
     }

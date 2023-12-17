@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class UrlRepository extends BaseRepository {
-    public static void save(Url url) throws SQLException {
+    public static void save(Url url) {
         String sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
         try (var conn = dataSource.getConnection();
              var preparedStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -25,10 +25,12 @@ public class UrlRepository extends BaseRepository {
             } else {
                 throw new SQLException("DB have not returned an id after saving an entity");
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
-    public static Optional<Url> find(Long id) throws SQLException {
+    public static Optional<Url> find(Long id) {
         var sql = "SELECT * FROM urls WHERE id = ?";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
@@ -43,11 +45,29 @@ public class UrlRepository extends BaseRepository {
                 url.setCreatedAt(createdAt);
                 return Optional.of(url);
             }
+
             return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
-    public static List<Url> getEntities() throws SQLException {
+    public static boolean existByUrl(String url) {
+        return getEntities().stream()
+                .anyMatch(i -> i.getName().equals(url));
+    }
+
+    public static void deleteAll() {
+        var sql = "DELETE FROM urls";
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public static List<Url> getEntities() {
         var sql = "SELECT * FROM urls";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
@@ -65,6 +85,8 @@ public class UrlRepository extends BaseRepository {
             }
 
             return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 }

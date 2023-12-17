@@ -6,6 +6,21 @@
 @template.layout.page(
 content = @`
     <section>
+        @if (page != null && page.getAlertInfo() != null)
+            <div class="rounded-0 m-0 alert alert-dismissible fade show alert-info" role="alert">
+                <p class="m-0">
+                    ${page.getAlertInfo()}
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (page != null && page.getAlertSuccess() != null)
+            <div class="rounded-0 m-0 alert alert-dismissible fade show alert-success" role="alert">
+                <p class="m-0">${page.getAlertSuccess()}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="container-lg mt-5">
             <h1>Сайты</h1>
 
