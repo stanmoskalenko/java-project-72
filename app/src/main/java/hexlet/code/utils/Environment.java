@@ -3,6 +3,7 @@ package hexlet.code.utils;
 import java.nio.file.Path;
 
 public class Environment {
+
     private static final String H2_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
     private static final String DEFAULT_SCHEMA_PATH = "src/main/resources/migrations/schema.sql";
     private static final String DEFAULT_JTE_TEMPLATE_PATH = "templates";
@@ -19,4 +20,5 @@ public class Environment {
 
     public static final String TEMPLATE_PATH = System.getenv()
             .getOrDefault("JTE_TEMPLATES_PATH", DEFAULT_JTE_TEMPLATE_PATH);
+
 }

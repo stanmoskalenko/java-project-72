@@ -4,23 +4,9 @@
 
 
 @template.layout.page(
+page = page,
 content = @`
     <section>
-        @if (page != null && page.getAlertInfo() != null)
-            <div class="rounded-0 m-0 alert alert-dismissible fade show alert-info" role="alert">
-                <p class="m-0">
-                    ${page.getAlertInfo()}
-                </p>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        @if (page != null && page.getAlertSuccess() != null)
-            <div class="rounded-0 m-0 alert alert-dismissible fade show alert-success" role="alert">
-                <p class="m-0">${page.getAlertSuccess()}</p>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
         <div class="container-lg mt-5">
             <h1>Сайты</h1>
 
@@ -34,16 +20,23 @@ content = @`
                 </tr>
                 </thead>
                 <tbody>
-                @for(var url : page.getUrls())
-                    <tr>
-                        <td>${url.getId().toString()}</td>
-                        <td>
-                            <a href="${NamedRoutes.urlPath(url.getId().toString())}">${url.getName()}</a>
-                        </td>
-                        <td>${url.getCreatedAt().toString()}</td>
-                        <td></td>
-                    </tr>
-                @endfor
+                @if(page != null && page.getUrls() != null)
+                    @for(var url : page.getUrls())
+                        <tr>
+                            <td>${url.getId().toString()}</td>
+                            <td>
+                                <a href="${NamedRoutes.urlPath(url.getId().toString())}">${url.getName()}</a>
+                            </td>
+                            @if(url.getLastCheck() != null)
+                                <td>${url.getLastCheck().getCreatedAt()}</td>
+                                <td>${url.getLastCheck().getStatusCode()}</td>
+                            @else
+                                <td></td>
+                                <td></td>
+                            @endif
+                        </tr>
+                    @endfor
+                @endif
                 </tbody>
             </table>
         </div>

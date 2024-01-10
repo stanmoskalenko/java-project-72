@@ -42,14 +42,17 @@ sourceSets.main {
 dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
     implementation("net.datafaker:datafaker:2.0.1")
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+
 
     // api
-    implementation("io.javalin:javalin-bundle:5.6.2")
+    implementation("com.konghq:unirest-java:4.0.0-RC2")
+    implementation("io.javalin:javalin-bundle:5.6.3")
     implementation("io.javalin:javalin-rendering:5.6.2")
     implementation("io.javalin:javalin:5.6.3")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.16.0")
+    implementation("org.jsoup:jsoup:1.17.1")
 
     // jte
     implementation("gg.jte:jte:3.0.1")
@@ -62,6 +65,8 @@ dependencies {
     implementation("org.instancio:instancio-junit:3.3.0")
 
     // Test deps
+    testImplementation("org.assertj:assertj-core:3.25.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.mockito:mockito-core:5.8.0")
     testImplementation("com.konghq:unirest-java:3.14.2")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))

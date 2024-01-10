@@ -28,7 +28,7 @@ ENV MIGRATION_RESOURCES=src/main/resources/
 ENV JTE_TEMPLATES_PATH=templates
 ENV SCHEMA_PATH=migrations/schema.sql
 ENV APP_PORT=8080
-
+ENV JDBC_DATABASE_URL=jdbc:postgresql://db/postgres?user=postgres&password=secret
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/build/libs/$ARTIFACT_NAME .
 COPY $MIGRATION_RESOURCES .
 COPY src/main/resources/templates ./$JTE_TEMPLATES_PATH

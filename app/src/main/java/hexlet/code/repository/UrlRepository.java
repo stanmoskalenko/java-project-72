@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class UrlRepository extends BaseRepository {
+
+    private static final String NOT_FOUND = "Не найдено!";
+
     public static void save(Url url) {
         String sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
         try (var conn = dataSource.getConnection();
@@ -47,6 +50,28 @@ public class UrlRepository extends BaseRepository {
             }
 
             return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public static Url getById(Long id) {
+        var sql = "SELECT * FROM urls WHERE id = ?";
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            var resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                var name = resultSet.getString("name");
+                var createdAt = resultSet.getTimestamp("created_at");
+                var url = new Url();
+                url.setId(id);
+                url.setName(name);
+                url.setCreatedAt(createdAt);
+                return url;
+            }
+
+            return null;
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -89,4 +114,5 @@ public class UrlRepository extends BaseRepository {
             throw new RuntimeException(e.getMessage());
         }
     }
+
 }

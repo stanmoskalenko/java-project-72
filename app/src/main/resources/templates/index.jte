@@ -1,23 +1,10 @@
 @import hexlet.code.dto.UrlPage
-@import java.util.stream.Collectors
-@import io.javalin.validation.ValidationError
 @param UrlPage page
 
 @template.layout.page(
+page = page,
 content = @`
     <section>
-        @if (page != null && page.getAlertErrors() != null)
-            <div class="rounded-0 m-0 alert alert-dismissible fade show alert-danger" role="alert">
-                <p class="m-0">
-                    ${page.getAlertErrors().values().stream()
-                                .map(error -> error.stream()
-                                        .map(ValidationError::getMessage)
-                                        .collect(Collectors.joining("; ")))
-                                .collect(Collectors.joining())}
-                </p>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
         <div class="container-fluid bg-dark p-5">
             <div class="row">
                 <div class="col-md-10 col-lg-8 mx-auto text-white">

@@ -1,20 +1,23 @@
 package hexlet.code.dto;
 
 import hexlet.code.model.Url;
-import io.javalin.validation.ValidationError;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
-@Data
-public class UrlsPage {
-    private List<Url> urls;
-    private String alertInfo;
-    private String alertSuccess;
-    private Map<String, List<ValidationError<Object>>> alertErrors;
+@Getter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class UrlsPage extends BasePage {
 
-    public UrlsPage(List<Url> urls) {
-        this.urls = urls;
+    private List<UrlPage> urls;
+
+    public final void setUrls(List<Url> urls) {
+        this.urls = urls.stream()
+                .map(UrlPage::new)
+                .toList();
     }
+
 }

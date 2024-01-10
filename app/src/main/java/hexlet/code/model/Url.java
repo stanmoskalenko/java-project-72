@@ -8,7 +8,9 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 public class Url {
+
     private Long id;
     private String name;
     private Timestamp createdAt;
+
 }
