@@ -88,6 +88,22 @@ class AppTest {
     }
 
     @Test
+    void testUrls() {
+        var data = UrlRepository.getEntities();
+        System.out.println(data);
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get(NamedRoutes.urlsPath());
+            var code = response.code();
+            var body = response.body().string();
+
+            assertEquals(HttpStatus.OK.getCode(), code);
+            assertTrue(data.stream().allMatch(i -> body.contains(i.getName())
+                    && body.contains(i.getCreatedAt().toLocalDateTime().format(formatter))
+                    && body.contains(i.getId().toString())));
+        });
+    }
+
+    @Test
     void testCreate() {
         JavalinTest.test(app, (server, client) -> {
             try (var response = client.post(NamedRoutes.urlsPath(),
