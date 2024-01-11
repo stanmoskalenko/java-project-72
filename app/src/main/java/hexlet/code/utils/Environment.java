@@ -2,7 +2,7 @@ package hexlet.code.utils;
 
 public class Environment {
 
-    private static final String DEFAULT_DB_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
+    private static final String DEFAULT_DB_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;LOCK_MODE=0";
     private static final String DEFAULT_SCHEMA_PATH = "migrations/schema.sql";
     private static final String DEFAULT_JTE_TEMPLATE_PATH = "templates";
     private static final String DEFAULT_APP_PORT = "7070";

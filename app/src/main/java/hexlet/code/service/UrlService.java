@@ -26,7 +26,7 @@ public class UrlService {
                 return protocol + "://" + host;
             }
 
-            return protocol + "://" + host + ":" + port + "/";
+            return protocol + "://" + host + ":" + port;
 
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
