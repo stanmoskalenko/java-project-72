@@ -11,15 +11,21 @@ import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
 public class App {
 
     private static String readResourceFile() throws IOException {
-        return Files.readString(Environment.SCHEMA_PATH);
+        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA_PATH);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        }
     }
 
     private static void prepareDb() throws Exception {
@@ -29,6 +35,7 @@ public class App {
 
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
+        System.out.println(sql);
 
         try (var connection = dataSource.getConnection();
              var statement = connection.createStatement()) {

@@ -6,3 +6,48 @@
 |---|---|---| ---|
 
 </div>
+# SEO Analyzer Demo Application
+
+This is a demo application designed for checking the SEO suitability of a website.
+
+## Usage
+
+### Build
+
+To build the application, run:
+
+```bash
+make build
+```
+
+### Install
+
+To install the application, run:
+
+```bash
+make install
+```
+
+### Lint
+
+To perform linting using Checkstyle, run:
+
+```bash
+make lint
+```
+
+### Test
+
+To run tests, execute:
+
+```bash
+make test
+```
+
+### Generate Report
+
+To generate a test report, run:
+
+```bash
+make report
+```

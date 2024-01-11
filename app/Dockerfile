@@ -23,7 +23,7 @@ LABEL name="san-page-analyzer"
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 
-ENV ARTIFACT_NAME=app-20-all.jar
+ENV ARTIFACT_NAME=app-20.jar
 ENV MIGRATION_RESOURCES=src/main/resources/
 ENV JTE_TEMPLATES_PATH=templates
 ENV SCHEMA_PATH=migrations/schema.sql

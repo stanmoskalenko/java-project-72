@@ -14,6 +14,3 @@ test:
 
 report:
 	./gradlew test jacocoTestReport
-
-image:
-	docker build -t sanmoskalenko/page-analazer:latest .
