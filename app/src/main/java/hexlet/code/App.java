@@ -30,7 +30,6 @@ public class App {
 
     private static void prepareDb() throws Exception {
         var hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(Environment.JDBC_DRIVER);
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
 
         var dataSource = new HikariDataSource(hikariConfig);
