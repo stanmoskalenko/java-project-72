@@ -10,15 +10,18 @@ import hexlet.code.utils.JtePagePath;
 import hexlet.code.utils.NamedRoutes;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 
+@Slf4j
 public class App {
 
     private static String readResourceFile() throws IOException {
@@ -28,9 +31,10 @@ public class App {
         }
     }
 
-    private static void prepareDb() throws Exception {
+    private static void prepareDb() throws IOException, SQLException {
         var hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
+        hikariConfig.setDriverClassName(Environment.JDBC_DRIVER);
 
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();
@@ -44,15 +48,11 @@ public class App {
         BaseRepository.dataSource = dataSource;
     }
 
-    public static Javalin getApp() {
+    public static Javalin getApp() throws SQLException, IOException {
         JavalinJte.init(createTemplateEngine());
+        prepareDb();
 
-        try {
-            prepareDb();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        try (var app = Javalin.create(cfg -> cfg.plugins.enableDevLogging())) {
+        try (var app = Javalin.create()) {
             app.get(NamedRoutes.index(), ctx -> ctx.render(JtePagePath.INDEX));
             app.get(NamedRoutes.urlsPath(), UrlController::index);
             app.get(NamedRoutes.urlPath("{id}"), UrlController::show);
@@ -63,7 +63,13 @@ public class App {
     }
 
     public static void main(String[] args) {
-        Javalin app = getApp();
-        app.start(Environment.APP_PORT);
+        try {
+            var app = getApp();
+            app.start(Environment.APP_PORT);
+        } catch (SQLException e) {
+            log.error("SQL execution error: " + e.getMessage() + " sql state: " + e.getSQLState());
+        } catch (IOException e) {
+            log.error("Resource reading error : " + e.getMessage());
+        }
     }
 }
