@@ -23,14 +23,11 @@ LABEL name="san-page-analyzer"
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 
-ENV ARTIFACT_NAME=app-20.jar
-ENV MIGRATION_RESOURCES=src/main/resources/
-ENV JTE_TEMPLATES_PATH=templates
-ENV SCHEMA_PATH=migrations/schema.sql
+ENV ARTIFACT_NAME=app-20-all.jar
 ENV APP_PORT=8080
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/build/libs/$ARTIFACT_NAME .
-COPY $MIGRATION_RESOURCES .
-COPY src/main/resources/templates ./$JTE_TEMPLATES_PATH
+COPY src/main/resources/schema.sql .
+COPY src/main/resources/templates ./templates
 
 EXPOSE $APP_PORT
 ENTRYPOINT exec java -jar ${ARTIFACT_NAME}

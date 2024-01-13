@@ -4,23 +4,17 @@ import hexlet.code.model.Url;
 
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UrlRepository extends BaseRepository {
 
-    private static final String NOT_FOUND = "Не найдено!";
-
     public static void save(Url url) {
-        String sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
+        String sql = "INSERT INTO urls (name) VALUES (?)";
         try (var conn = dataSource.getConnection();
              var preparedStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            var createdAt = Timestamp.valueOf(LocalDateTime.now());
             preparedStatement.setString(1, url.getName());
-            preparedStatement.setTimestamp(2, createdAt);
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -80,16 +74,6 @@ public class UrlRepository extends BaseRepository {
     public static boolean existByUrl(String url) {
         return getEntities().stream()
                 .anyMatch(i -> i.getName().equals(url));
-    }
-
-    public static void deleteAll() {
-        var sql = "DELETE FROM urls";
-        try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            stmt.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
-        }
     }
 
     public static List<Url> getEntities() {

@@ -22,7 +22,7 @@ import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 public class App {
 
     private static String readResourceFile() throws IOException {
-        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA_PATH);
+        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         }
