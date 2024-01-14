@@ -37,6 +37,7 @@ class AppTest {
         dataSource = new HikariDataSource(hikariConfig);
         TestUtils.clearTables(dataSource);
         TestUtils.createTables(dataSource);
+        TestUtils.prepareTables(dataSource);
     }
 
     @Test
@@ -50,7 +51,6 @@ class AppTest {
 
     @Test
     void testShow() throws SQLException, IOException {
-        TestUtils.prepareTables(dataSource);
         var expectedUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var urlId = expectedUrl.get("id");
         var expectedChecks = TestUtils.getUrlCheckDataByUrlId(dataSource, urlId);
@@ -74,8 +74,7 @@ class AppTest {
     }
 
     @Test
-    void testUrls() throws SQLException, IOException {
-        TestUtils.prepareTables(dataSource);
+    void testUrls() throws SQLException {
         var expectedFirstUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var expectedSecondUrl = TestUtils.getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
         var firstUrlId = expectedFirstUrl.get("id");
@@ -145,7 +144,7 @@ class AppTest {
             var urlName = mockWebServer.url("/").toString().replaceAll("/$", "");
             var createBody = "url=" + urlName;
             var createResponseCode = client.post("/urls", createBody).code();
-            var requestCheckUrl = "/urls/1/checks";
+            var requestCheckUrl = "/urls/3/checks";
             var response = client.post(requestCheckUrl);
             var actualUrl = TestUtils.getUrlDataByName(dataSource, urlName);
             var actualCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));

@@ -47,23 +47,20 @@ public class TestUtils {
         try (var conn = dataSource.getConnection();
              var stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("createTables executed with data: " + sql);
         }
     }
 
-    public static void prepareTables(HikariDataSource dataSource) throws IOException, SQLException {
+    public static void prepareTables(HikariDataSource dataSource) throws SQLException {
         try (var conn = dataSource.getConnection();
              var stmt = conn.createStatement()) {
             stmt.execute(URLS_INSERT_SQL);
             stmt.execute(URL_CHECKS_INSERT_SQL);
-            System.out.println("prepareTables executed");
         }
     }
 
     public static void clearTables(HikariDataSource dataSource) throws SQLException {
         var sql = "DROP TABLE IF EXISTS url_checks; DROP TABLE IF EXISTS urls;";
         executeSql(dataSource, sql);
-        System.out.println("clearTables executed");
     }
 
     public static void executeSql(HikariDataSource dataSource, String sql) throws SQLException {
