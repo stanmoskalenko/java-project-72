@@ -4,19 +4,24 @@ import hexlet.code.model.Url;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UrlRepository extends BaseRepository {
 
+    private static final int CREATED_AT_PARAM_IDX = 2;
+
     public static void save(Url url) {
-        String sql = "INSERT INTO urls (name) VALUES (?)";
+        String sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
         try (var conn = dataSource.getConnection();
-             var preparedStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, url.getName());
-            preparedStatement.executeUpdate();
-            var generatedKeys = preparedStatement.getGeneratedKeys();
+             var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, url.getName());
+            stmt.setTimestamp(CREATED_AT_PARAM_IDX, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.executeUpdate();
+            var generatedKeys = stmt.getGeneratedKeys();
             if (generatedKeys.next()) {
                 url.setId(generatedKeys.getLong(1));
             } else {
