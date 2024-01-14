@@ -9,7 +9,7 @@ public class JteTemplateEngine {
 
     public static TemplateEngine createTemplateEngine() {
         ClassLoader classLoader = App.class.getClassLoader();
-        ResourceCodeResolver codeResolver = new ResourceCodeResolver(Environment.TEMPLATE_PATH, classLoader);
+        ResourceCodeResolver codeResolver = new ResourceCodeResolver(Environment.TEMPLATES_FOLDER_NAME, classLoader);
         return TemplateEngine.create(codeResolver, ContentType.Html);
     }
 

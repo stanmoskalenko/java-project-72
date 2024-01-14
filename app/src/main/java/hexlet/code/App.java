@@ -25,7 +25,7 @@ import static hexlet.code.utils.JteTemplateEngine.createTemplateEngine;
 public class App {
 
     private static String readResourceFile() throws IOException {
-        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA);
+        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA_FILE_NAME);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         }
@@ -33,8 +33,8 @@ public class App {
 
     private static void prepareDb() throws IOException, SQLException {
         var hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(Environment.JDBC_DATABASE_URL);
-        hikariConfig.setDriverClassName(Environment.JDBC_DRIVER);
+        hikariConfig.setJdbcUrl(Environment.getJdbcUrl());
+        hikariConfig.setDriverClassName(Environment.getJdbcDriver());
 
         var dataSource = new HikariDataSource(hikariConfig);
         var sql = readResourceFile();

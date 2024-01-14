@@ -2,7 +2,6 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import hexlet.code.repository.UrlRepository;
 import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import hexlet.code.utils.TestUtils;
@@ -11,6 +10,7 @@ import io.javalin.http.HttpStatus;
 import io.javalin.testtools.JavalinTest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +30,16 @@ class AppTest {
     private HikariDataSource dataSource;
     private Javalin app;
 
+    @BeforeAll
+    public static void beforeAll() {
+        Environment.initTestProfile(Environment.H2_JDBC_URL);
+    }
+
     @BeforeEach
     public void setUp() throws SQLException, IOException {
         var hikariConfig = new HikariConfig();
         app = App.getApp();
-        hikariConfig.setJdbcUrl(Environment.H2_JDBC_URL);
+        hikariConfig.setJdbcUrl(Environment.getJdbcUrl());
         dataSource = new HikariDataSource(hikariConfig);
         TestUtils.clearTables(dataSource);
         TestUtils.createTables(dataSource);
@@ -51,7 +56,7 @@ class AppTest {
     }
 
     @Test
-    void testShow() throws SQLException, IOException {
+    void testShow() throws SQLException {
         var expectedUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var urlId = expectedUrl.get("id");
         var expectedChecks = TestUtils.getUrlCheckDataByUrlId(dataSource, urlId);
@@ -76,7 +81,6 @@ class AppTest {
 
     @Test
     void testUrls() throws SQLException {
-        System.out.println("WTF???" + UrlRepository.getEntities());
         var expectedFirstUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var expectedSecondUrl = TestUtils.getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
         var firstUrlId = expectedFirstUrl.get("id");
@@ -146,11 +150,9 @@ class AppTest {
             var urlName = mockWebServer.url("/").toString().replaceAll("/$", "");
             var createBody = "url=" + urlName;
             var createResponseCode = client.post("/urls", createBody).code();
-            var requestCheckUrl = "/urls/3/checks";
-            var response = client.post(requestCheckUrl);
-            System.out.println("WTF???" + response.body().string());
-            System.out.println("WTF???" + createResponseCode);
             var actualUrl = TestUtils.getUrlDataByName(dataSource, urlName);
+            var requestCheckUrl = "/urls/" + actualUrl.get("id") + "/checks";
+            var response = client.post(requestCheckUrl);
             var actualCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
 
             assertEquals(OK, createResponseCode);
@@ -165,4 +167,5 @@ class AppTest {
 
         mockWebServer.shutdown();
     }
+
 }

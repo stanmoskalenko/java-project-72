@@ -36,7 +36,7 @@ public class TestUtils {
 
 
     private static String readSchemaFile() throws IOException {
-        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA);
+        var inputStream = App.class.getClassLoader().getResourceAsStream(Environment.SCHEMA_FILE_NAME);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining(""));
         }
