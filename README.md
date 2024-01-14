@@ -7,8 +7,6 @@
 
 </div>
 
-# SEO Analyzer Demo Application
-
 This is a demo application designed for checking the SEO suitability of a website.
 
 ## Usage
