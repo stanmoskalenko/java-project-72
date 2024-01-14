@@ -15,21 +15,12 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AppTest {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final String URLS = "urls-up.sql";
-    private static final String URL_CHECKS = "url-checks-up.sql";
-    private static final String DOWN_FIXTURE = "fixture-down.sql";
     private static final String TWO_CHECK_URL_NAME = "http://www.elissa-von.com";
     private static final String ONE_CHECK_URL_NAME = "http://www.jess-pagac.org:45605";
     private static final String TEST_URL_NAME = "http://www.test.org:45605/some-slug";
@@ -38,64 +29,14 @@ class AppTest {
     private HikariDataSource dataSource;
     private Javalin app;
 
-    private static Map<String, String> getUrlDataByName(HikariDataSource dataSource, String url) throws SQLException {
-        var result = new HashMap<String, String>();
-        var sql = "SELECT * FROM urls WHERE name = ?";
-
-        try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, url);
-            var resultSet = stmt.executeQuery();
-
-            if (resultSet.next()) {
-                result.put("id", resultSet.getString("id"));
-                result.put("name", resultSet.getString("name"));
-                result.put("createdAt", resultSet.getTimestamp("created_at").toLocalDateTime().format(FORMATTER));
-
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    private static List<Map<String, String>> getUrlCheckDataByUrlId(
-            HikariDataSource dataSource,
-            String urlId
-    ) throws SQLException {
-        List<Map<String, String>> result = new ArrayList<>();
-        var sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC";
-
-        try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, Long.parseLong(urlId));
-            var resultSet = stmt.executeQuery();
-            while (resultSet.next()) {
-                var data = new HashMap<String, String>();
-                data.put("id", resultSet.getString("id"));
-                data.put("urlId", resultSet.getString("url_id"));
-                data.put("statusCode", resultSet.getString("status_code"));
-                data.put("title", resultSet.getString("title"));
-                data.put("h1", resultSet.getString("h1"));
-                data.put("description", resultSet.getString("description"));
-                data.put("createdAt", resultSet.getTimestamp("created_at").toLocalDateTime().format(FORMATTER));
-
-                result.add(data);
-            }
-        }
-
-        return result;
-    }
-
     @BeforeEach
     public void setUp() throws SQLException, IOException {
         var hikariConfig = new HikariConfig();
         app = App.getApp();
         hikariConfig.setJdbcUrl(Environment.H2_JDBC_URL);
         dataSource = new HikariDataSource(hikariConfig);
-        var clearTableSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, DOWN_FIXTURE);
-        TestUtils.executeSql(dataSource, clearTableSql);
-        TestUtils.prepareDb(dataSource);
+        TestUtils.clearTables(dataSource);
+        TestUtils.createTables(dataSource);
     }
 
     @Test
@@ -108,15 +49,11 @@ class AppTest {
     }
 
     @Test
-    void testShow() throws IOException, SQLException {
-        var urlsSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, URLS);
-        var urlChecksSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, URL_CHECKS);
-        TestUtils.executeSql(dataSource, urlsSql);
-        TestUtils.executeSql(dataSource, urlChecksSql);
-
-        var expectedUrl = getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
+    void testShow() throws SQLException, IOException {
+        TestUtils.prepareTables(dataSource);
+        var expectedUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var urlId = expectedUrl.get("id");
-        var expectedChecks = getUrlCheckDataByUrlId(dataSource, urlId);
+        var expectedChecks = TestUtils.getUrlCheckDataByUrlId(dataSource, urlId);
 
         JavalinTest.test(app, (server, client) -> {
             var response = client.get(NamedRoutes.urlPath(urlId));
@@ -137,20 +74,16 @@ class AppTest {
     }
 
     @Test
-    void testUrls() throws IOException, SQLException {
-        var urlsSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, URLS);
-        var urlChecksSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, URL_CHECKS);
-        TestUtils.executeSql(dataSource, urlsSql);
-        TestUtils.executeSql(dataSource, urlChecksSql);
-
-        var expectedFirstUrl = getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
-        var expectedSecondUrl = getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
+    void testUrls() throws SQLException, IOException {
+        TestUtils.prepareTables(dataSource);
+        var expectedFirstUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
+        var expectedSecondUrl = TestUtils.getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
         var firstUrlId = expectedFirstUrl.get("id");
         var secondUrlId = expectedSecondUrl.get("id");
-        var expectedFirstLastCheck = getUrlCheckDataByUrlId(dataSource, firstUrlId).stream()
+        var expectedFirstLastCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, firstUrlId).stream()
                 .findFirst()
                 .get();
-        var expectedSecondLastCheck = getUrlCheckDataByUrlId(dataSource, secondUrlId).stream()
+        var expectedSecondLastCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, secondUrlId).stream()
                 .findFirst()
                 .get();
 
@@ -201,11 +134,9 @@ class AppTest {
 
     @Test
     void testCreateCheck() throws IOException {
-        var htmlSample = TestUtils.readFixture(TestUtils.HTML_FOLDER, "index.html");
-
         var mockWebServer = new MockWebServer();
         mockWebServer.enqueue(new MockResponse()
-                .setBody(htmlSample)
+                .setBody(TestUtils.HTML_SAMPLE)
                 .setResponseCode(OK)
                 .setHeader("Content-Type", "text/html; charset=utf-8"));
         mockWebServer.start();
@@ -216,8 +147,8 @@ class AppTest {
             var createResponseCode = client.post("/urls", createBody).code();
             var requestCheckUrl = "/urls/1/checks";
             var response = client.post(requestCheckUrl);
-            var actualUrl = getUrlDataByName(dataSource, urlName);
-            var actualCheck = getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
+            var actualUrl = TestUtils.getUrlDataByName(dataSource, urlName);
+            var actualCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
 
             assertEquals(OK, createResponseCode);
             assertEquals(OK, response.code());
