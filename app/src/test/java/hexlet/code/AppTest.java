@@ -2,6 +2,7 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import hexlet.code.repository.UrlRepository;
 import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import hexlet.code.utils.TestUtils;
@@ -75,6 +76,7 @@ class AppTest {
 
     @Test
     void testUrls() throws SQLException {
+        System.out.println("WTF???" + UrlRepository.getEntities());
         var expectedFirstUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
         var expectedSecondUrl = TestUtils.getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
         var firstUrlId = expectedFirstUrl.get("id");
@@ -146,6 +148,8 @@ class AppTest {
             var createResponseCode = client.post("/urls", createBody).code();
             var requestCheckUrl = "/urls/3/checks";
             var response = client.post(requestCheckUrl);
+            System.out.println("WTF???" + response.body().string());
+            System.out.println("WTF???" + createResponseCode);
             var actualUrl = TestUtils.getUrlDataByName(dataSource, urlName);
             var actualCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
 
