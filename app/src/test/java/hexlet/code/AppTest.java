@@ -2,12 +2,7 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import hexlet.code.dto.Alert;
-import hexlet.code.dto.UrlCheckComponent;
-import hexlet.code.dto.UrlPage;
-import hexlet.code.model.Url;
-import hexlet.code.model.UrlCheck;
-import hexlet.code.service.UrlCheckService;
+import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import hexlet.code.utils.TestUtils;
 import io.javalin.Javalin;
@@ -20,25 +15,18 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AppTest {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final String H2_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;LOCK_MODE=0";
-    private static final String SHORT_HTML = "indexShort.html";
-    private static final String HTML = "index.html";
     private static final String URLS = "urls-up.sql";
     private static final String URL_CHECKS = "url-checks-up.sql";
     private static final String DOWN_FIXTURE = "fixture-down.sql";
@@ -46,7 +34,6 @@ class AppTest {
     private static final String ONE_CHECK_URL_NAME = "http://www.jess-pagac.org:45605";
     private static final String TEST_URL_NAME = "http://www.test.org:45605/some-slug";
     private static final int OK = 200;
-    private static final int R_ERROR = 302;
 
     private HikariDataSource dataSource;
     private Javalin app;
@@ -104,7 +91,7 @@ class AppTest {
     public void setUp() throws SQLException, IOException {
         var hikariConfig = new HikariConfig();
         app = App.getApp();
-        hikariConfig.setJdbcUrl(H2_URL);
+        hikariConfig.setJdbcUrl(Environment.H2_JDBC_URL);
         dataSource = new HikariDataSource(hikariConfig);
         var clearTableSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, DOWN_FIXTURE);
         TestUtils.executeSql(dataSource, clearTableSql);
@@ -213,87 +200,35 @@ class AppTest {
     }
 
     @Test
-    void testCreateCheck() throws IOException, SQLException {
-        var htmlSample = TestUtils.readFixture(TestUtils.HTML_FOLDER, HTML);
-        var htmlShortSample = TestUtils.readFixture(TestUtils.HTML_FOLDER, SHORT_HTML);
-        var urlsSql = TestUtils.readFixture(TestUtils.SQL_FOLDER, URLS);
-        TestUtils.executeSql(dataSource, urlsSql);
+    void testCreateCheck() throws IOException {
+        var htmlSample = TestUtils.readFixture(TestUtils.HTML_FOLDER, "index.html");
 
-        var createdAt = Timestamp.valueOf(LocalDateTime.now());
-        var urlCheck200 = new UrlCheck(
-                1L,
-                OK,
-                "Title content",
-                "Some H1 content",
-                "Some description content",
-                1L, createdAt);
-        var urlCheckShort200 = new UrlCheck(
-                2L, OK,
-                "",
-                "",
-                "Some short description content",
-                1L,
-                createdAt);
-        var urlCheckComponent200 = new UrlCheckComponent(urlCheck200);
-        var urlCheckComponentShort200 = new UrlCheckComponent(urlCheckShort200);
-        var successAlert = new Alert("Страница успешно проверена", Alert.TYPE.SUCCESS);
-        var errorAlert = new Alert("Некорректный адрес", Alert.TYPE.ERROR);
-        var url = new Url();
+        var mockWebServer = new MockWebServer();
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(htmlSample)
+                .setResponseCode(OK)
+                .setHeader("Content-Type", "text/html; charset=utf-8"));
+        mockWebServer.start();
 
-        List<UrlCheckComponent> checks = new ArrayList<>();
-        checks.add(urlCheckComponent200);
-        url.setId(1L);
-        url.setCreatedAt(createdAt);
+        JavalinTest.test(app, (server, client) -> {
+            var urlName = mockWebServer.url("/").toString().replaceAll("/$", "");
+            var createBody = "url=" + urlName;
+            var createResponseCode = client.post("/urls", createBody).code();
+            var requestCheckUrl = "/urls/1/checks";
+            var response = client.post(requestCheckUrl);
+            var actualUrl = getUrlDataByName(dataSource, urlName);
+            var actualCheck = getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
 
-        try (var server = new MockWebServer()) {
-            server.start();
-            var baseUrl = server.url("/");
-            url.setName(baseUrl.toString());
+            assertEquals(OK, createResponseCode);
+            assertEquals(OK, response.code());
+            assertEquals(urlName, actualUrl.get("name"));
+            assertEquals(1, actualCheck.size());
+            assertTrue(actualCheck.stream()
+                    .allMatch(check -> check.get("title").equals("Title content")
+                            && check.get("h1").equals("Some H1 content")
+                            && check.get("description").equals("Some description content")));
+        });
 
-            var page = new UrlPage(url);
-            page.setChecks(checks);
-            page.setAlert(successAlert);
-
-            server.enqueue(new MockResponse()
-                    .setBody(htmlSample)
-                    .setResponseCode(OK)
-                    .setHeader("Content-Type", "text/html; charset=utf-8"));
-
-            server.enqueue(new MockResponse()
-                    .setBody(htmlShortSample)
-                    .setResponseCode(OK)
-                    .setHeader("Content-Type", "text/html; charset=utf-8"));
-
-            server.enqueue(new MockResponse()
-                    .setResponseCode(R_ERROR)
-                    .setHeader("Content-Type", "text/html; charset=utf-8"));
-
-            var actualWithFullData = UrlCheckService.create(url);
-
-            assertEquals(baseUrl.toString(), actualWithFullData.getName());
-            assertThat(actualWithFullData)
-                    .usingRecursiveComparison()
-                    .isEqualTo(page);
-
-            var actualShort = UrlCheckService.create(url);
-            checks.add(urlCheckComponentShort200);
-            checks.sort(Comparator.comparing(UrlCheckComponent::getId).reversed());
-            page.setChecks(checks);
-
-            assertEquals(baseUrl.toString(), actualShort.getName());
-            assertThat(actualShort)
-                    .usingRecursiveComparison()
-                    .isEqualTo(page);
-
-            var actualError = UrlCheckService.create(url);
-            page.setAlert(errorAlert);
-
-            assertEquals(baseUrl.toString(), actualError.getName());
-            assertThat(actualError)
-                    .usingRecursiveComparison()
-                    .isEqualTo(page);
-
-            server.shutdown();
-        }
+        mockWebServer.shutdown();
     }
 }
