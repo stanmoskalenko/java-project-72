@@ -37,7 +37,6 @@ tasks.jacocoTestReport {
 
 dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
-    implementation("net.datafaker:datafaker:2.0.1")
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
 
     // api

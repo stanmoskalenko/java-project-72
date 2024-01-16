@@ -41,9 +41,7 @@ class AppTest {
         app = App.getApp();
         hikariConfig.setJdbcUrl(Environment.getJdbcUrl());
         dataSource = new HikariDataSource(hikariConfig);
-        TestUtils.clearTables(dataSource);
-        TestUtils.createTables(dataSource);
-        TestUtils.prepareTables(dataSource);
+        TestUtils.loadSchema(dataSource);
     }
 
     @Test
@@ -56,39 +54,42 @@ class AppTest {
     }
 
     @Test
-    void testShow() throws SQLException {
-        var expectedUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
-        var urlId = expectedUrl.get("id");
-        var expectedChecks = TestUtils.getUrlCheckDataByUrlId(dataSource, urlId);
+    void testShow() throws SQLException, IOException {
+        TestUtils.loadSampleData(dataSource, TestUtils.SQL_URLS_SAMPLE);
+        TestUtils.loadSampleData(dataSource, TestUtils.SQL_URL_CHECKS_SAMPLE);
+        var expectedUrl = TestUtils.getUrlDataByName(TWO_CHECK_URL_NAME);
+        var expectedChecks = TestUtils.getUrlCheckDataByUrlId(expectedUrl.getId());
 
         JavalinTest.test(app, (server, client) -> {
-            var response = client.get(NamedRoutes.urlPath(urlId));
+            var response = client.get(NamedRoutes.urlPath(expectedUrl.getId().toString()));
             var actual = response.body().string();
 
             assertEquals(HttpStatus.OK.getCode(), response.code());
             assertTrue(actual.contains("Запустить проверку"));
-            assertTrue(actual.contains(urlId));
-            assertTrue(actual.contains(expectedUrl.get("name")));
-            assertTrue(actual.contains(expectedUrl.get("createdAt")));
+            assertTrue(actual.contains(expectedUrl.getId().toString()));
+            assertTrue(actual.contains(expectedUrl.getName()));
+            assertTrue(actual.contains(expectedUrl.getCreatedAt().toLocalDateTime().format(TestUtils.FORMATTER)));
             assertTrue(expectedChecks.stream()
-                    .allMatch(entry -> actual.contains(entry.get("id"))
-                            && actual.contains(entry.get("statusCode"))
-                            && actual.contains(entry.get("title"))
-                            && actual.contains(entry.get("h1"))
-                            && actual.contains(entry.get("description"))));
+                    .allMatch(entry -> actual.contains(entry.getId().toString())
+                            && actual.contains(String.valueOf(entry.getStatusCode()))
+                            && actual.contains(entry.getTitle())
+                            && actual.contains(entry.getH1())
+                            && actual.contains(entry.getDescription())));
         });
     }
 
     @Test
-    void testUrls() throws SQLException {
-        var expectedFirstUrl = TestUtils.getUrlDataByName(dataSource, TWO_CHECK_URL_NAME);
-        var expectedSecondUrl = TestUtils.getUrlDataByName(dataSource, ONE_CHECK_URL_NAME);
-        var firstUrlId = expectedFirstUrl.get("id");
-        var secondUrlId = expectedSecondUrl.get("id");
-        var expectedFirstLastCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, firstUrlId).stream()
+    void testUrls() throws SQLException, IOException {
+        TestUtils.loadSampleData(dataSource, TestUtils.SQL_URLS_SAMPLE);
+        TestUtils.loadSampleData(dataSource, TestUtils.SQL_URL_CHECKS_SAMPLE);
+        var expectedFirstUrl = TestUtils.getUrlDataByName(TWO_CHECK_URL_NAME);
+        var expectedSecondUrl = TestUtils.getUrlDataByName(ONE_CHECK_URL_NAME);
+        var firstUrlId = expectedFirstUrl.getId();
+        var secondUrlId = expectedSecondUrl.getId();
+        var expectedFirstLastCheck = TestUtils.getUrlCheckDataByUrlId(firstUrlId).stream()
                 .findFirst()
                 .get();
-        var expectedSecondLastCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, secondUrlId).stream()
+        var expectedSecondLastCheck = TestUtils.getUrlCheckDataByUrlId(secondUrlId).stream()
                 .findFirst()
                 .get();
 
@@ -98,15 +99,19 @@ class AppTest {
             var actual = response.body().string();
 
             assertEquals(HttpStatus.OK.getCode(), response.code());
-            assertTrue(actual.contains(expectedFirstLastCheck.get("statusCode")));
-            assertTrue(actual.contains(expectedSecondLastCheck.get("statusCode")));
-            assertTrue(actual.contains(expectedFirstLastCheck.get("createdAt")));
-            assertTrue(actual.contains(expectedSecondLastCheck.get("createdAt")));
+            assertTrue(actual.contains(String.valueOf(expectedFirstLastCheck.getStatusCode())));
+            assertTrue(actual.contains(String.valueOf(expectedSecondLastCheck.getStatusCode())));
+            assertTrue(actual.contains(expectedFirstLastCheck.getCreatedAt()
+                    .toLocalDateTime()
+                    .format(TestUtils.FORMATTER)));
+            assertTrue(actual.contains(expectedSecondLastCheck.getCreatedAt()
+                    .toLocalDateTime()
+                    .format(TestUtils.FORMATTER)));
 
-            assertTrue(actual.contains(expectedFirstUrl.get("name")));
-            assertTrue(actual.contains(expectedFirstUrl.get("id")));
-            assertTrue(actual.contains(expectedSecondUrl.get("name")));
-            assertTrue(actual.contains(expectedSecondUrl.get("id")));
+            assertTrue(actual.contains(expectedFirstUrl.getName()));
+            assertTrue(actual.contains(expectedFirstUrl.getId().toString()));
+            assertTrue(actual.contains(expectedSecondUrl.getName()));
+            assertTrue(actual.contains(expectedSecondUrl.getId().toString()));
         });
     }
 
@@ -141,7 +146,7 @@ class AppTest {
     void testCreateCheck() throws IOException {
         var mockWebServer = new MockWebServer();
         mockWebServer.enqueue(new MockResponse()
-                .setBody(TestUtils.HTML_SAMPLE)
+                .setBody(TestUtils.getFixture(TestUtils.HTML_SAMPLE))
                 .setResponseCode(OK)
                 .setHeader("Content-Type", "text/html; charset=utf-8"));
         mockWebServer.start();
@@ -150,19 +155,20 @@ class AppTest {
             var urlName = mockWebServer.url("/").toString().replaceAll("/$", "");
             var createBody = "url=" + urlName;
             var createResponseCode = client.post("/urls", createBody).code();
-            var actualUrl = TestUtils.getUrlDataByName(dataSource, urlName);
-            var requestCheckUrl = "/urls/" + actualUrl.get("id") + "/checks";
+            var actualUrl = TestUtils.getUrlDataByName(urlName);
+            var requestCheckUrl = "/urls/" + actualUrl.getId() + "/checks";
             var response = client.post(requestCheckUrl);
-            var actualCheck = TestUtils.getUrlCheckDataByUrlId(dataSource, actualUrl.get("id"));
+            var actualCheck = TestUtils.getUrlCheckDataByUrlId(actualUrl.getId());
 
             assertEquals(OK, createResponseCode);
             assertEquals(OK, response.code());
-            assertEquals(urlName, actualUrl.get("name"));
+            assertEquals(urlName, actualUrl.getName());
+
             assertEquals(1, actualCheck.size());
-            assertTrue(actualCheck.stream()
-                    .allMatch(check -> check.get("title").equals("Title content")
-                            && check.get("h1").equals("Some H1 content")
-                            && check.get("description").equals("Some description content")));
+            assertEquals("Some H1 content", actualCheck.get(0).getH1());
+            assertEquals("Some description content", actualCheck.get(0).getDescription());
+            assertEquals("Title content", actualCheck.get(0).getTitle());
+
         });
 
         mockWebServer.shutdown();

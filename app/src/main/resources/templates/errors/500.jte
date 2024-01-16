@@ -1,4 +1,5 @@
 @template.layout.page(
+page = null,
 content = @`
     <section>
         <div class="container-fluid bg-dark p-5">
