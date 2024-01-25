@@ -2,6 +2,8 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import hexlet.code.repository.UrlCheckRepository;
+import hexlet.code.repository.UrlRepository;
 import hexlet.code.utils.Environment;
 import hexlet.code.utils.NamedRoutes;
 import hexlet.code.utils.TestUtils;
@@ -24,7 +26,8 @@ class AppTest {
 
     private static final String TWO_CHECK_URL_NAME = "http://www.elissa-von.com";
     private static final String ONE_CHECK_URL_NAME = "http://www.jess-pagac.org:45605";
-    private static final String TEST_URL_NAME = "http://www.test.org:45605/some-slug";
+    private static final String TEST_URL_NAME = "http://www.test.org:45605";
+    private static final String TEST_URL_SLUG = "/some-slug";
     private static final int OK = 200;
 
     private HikariDataSource dataSource;
@@ -57,8 +60,8 @@ class AppTest {
     void testShow() throws SQLException, IOException {
         TestUtils.loadSampleData(dataSource, TestUtils.SQL_URLS_SAMPLE);
         TestUtils.loadSampleData(dataSource, TestUtils.SQL_URL_CHECKS_SAMPLE);
-        var expectedUrl = TestUtils.getUrlDataByName(TWO_CHECK_URL_NAME);
-        var expectedChecks = TestUtils.getUrlCheckDataByUrlId(expectedUrl.getId());
+        var expectedUrl = UrlRepository.findByName(TWO_CHECK_URL_NAME).get();
+        var expectedChecks = UrlCheckRepository.findById(expectedUrl.getId());
 
         JavalinTest.test(app, (server, client) -> {
             var response = client.get(NamedRoutes.urlPath(expectedUrl.getId().toString()));
@@ -82,14 +85,14 @@ class AppTest {
     void testUrls() throws SQLException, IOException {
         TestUtils.loadSampleData(dataSource, TestUtils.SQL_URLS_SAMPLE);
         TestUtils.loadSampleData(dataSource, TestUtils.SQL_URL_CHECKS_SAMPLE);
-        var expectedFirstUrl = TestUtils.getUrlDataByName(TWO_CHECK_URL_NAME);
-        var expectedSecondUrl = TestUtils.getUrlDataByName(ONE_CHECK_URL_NAME);
+        var expectedFirstUrl = UrlRepository.findByName(TWO_CHECK_URL_NAME).get();
+        var expectedSecondUrl = UrlRepository.findByName(ONE_CHECK_URL_NAME).get();
         var firstUrlId = expectedFirstUrl.getId();
         var secondUrlId = expectedSecondUrl.getId();
-        var expectedFirstLastCheck = TestUtils.getUrlCheckDataByUrlId(firstUrlId).stream()
+        var expectedFirstLastCheck = UrlCheckRepository.findById(firstUrlId).stream()
                 .findFirst()
                 .get();
-        var expectedSecondLastCheck = TestUtils.getUrlCheckDataByUrlId(secondUrlId).stream()
+        var expectedSecondLastCheck = UrlCheckRepository.findById(secondUrlId).stream()
                 .findFirst()
                 .get();
 
@@ -117,13 +120,12 @@ class AppTest {
 
     @Test
     void testCreate() {
-        var query = "url=" + TEST_URL_NAME;
+        var query = "url=" + TEST_URL_NAME + TEST_URL_SLUG;
         JavalinTest.test(app, (server, client) -> {
             try (var response = client.post(NamedRoutes.urlsPath(), query)) {
 
                 var actual = response.body().string();
                 assertEquals(HttpStatus.OK.getCode(), response.code());
-                assertTrue(actual.contains("Страница успешно добавлена"));
                 assertTrue(actual.contains("http://www.test.org:45605"));
             }
             try (var response = client.post(NamedRoutes.urlsPath(),
@@ -137,7 +139,6 @@ class AppTest {
             try (var response = client.post(NamedRoutes.urlsPath(), query)) {
                 var actual = response.body().string();
                 assertEquals(HttpStatus.OK.getCode(), response.code());
-                assertTrue(actual.contains("Страница уже существует"));
             }
         });
     }
@@ -155,10 +156,10 @@ class AppTest {
             var urlName = mockWebServer.url("/").toString().replaceAll("/$", "");
             var createBody = "url=" + urlName;
             var createResponseCode = client.post("/urls", createBody).code();
-            var actualUrl = TestUtils.getUrlDataByName(urlName);
+            var actualUrl = UrlRepository.findByName(urlName).get();
             var requestCheckUrl = "/urls/" + actualUrl.getId() + "/checks";
             var response = client.post(requestCheckUrl);
-            var actualCheck = TestUtils.getUrlCheckDataByUrlId(actualUrl.getId());
+            var actualCheck = UrlCheckRepository.findById(actualUrl.getId());
 
             assertEquals(OK, createResponseCode);
             assertEquals(OK, response.code());

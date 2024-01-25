@@ -2,9 +2,6 @@ package hexlet.code.utils;
 
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.App;
-import hexlet.code.model.Url;
-import hexlet.code.model.UrlCheck;
-import hexlet.code.repository.UrlCheckRepository;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,10 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.stream.Collectors;
-
-import static hexlet.code.repository.UrlRepository.getEntities;
 
 public class TestUtils {
 
@@ -51,17 +45,6 @@ public class TestUtils {
 
     public static void loadSampleData(HikariDataSource dataSource, String sqlSample) throws IOException, SQLException {
         executeSql(dataSource, getFixture(sqlSample));
-    }
-
-    public static Url getUrlDataByName(String urlName) {
-        return getEntities().stream()
-                .filter(entity -> entity.getName().equals(urlName))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public static List<UrlCheck> getUrlCheckDataByUrlId(Long urlId) {
-        return UrlCheckRepository.find(urlId);
     }
 
 }

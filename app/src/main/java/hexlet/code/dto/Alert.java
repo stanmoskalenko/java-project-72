@@ -13,4 +13,5 @@ public class Alert {
 
     private String message;
     private TYPE type;
+
 }

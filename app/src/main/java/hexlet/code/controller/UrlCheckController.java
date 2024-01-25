@@ -17,15 +17,14 @@ public class UrlCheckController {
     public static void create(Context ctx) {
         try {
             var urlId = ctx.pathParamAsClass("id", Long.class)
-                    .check(value -> UrlRepository.find(value).isPresent(), INVALID_URL)
+                    .check(value -> UrlRepository.findById(value).isPresent(), INVALID_URL)
                     .getOrThrow(ValidationException::new);
 
-            var url = UrlRepository.getById(urlId);
-
-            if (url != null) {
+            UrlRepository.findById(urlId).ifPresent(url -> {
                 var urlPage = UrlCheckService.create(url);
                 ctx.render(JtePagePath.SHOW, Collections.singletonMap("page", urlPage));
-            }
+            });
+
         } catch (ValidationException e) {
             ctx.status(HttpStatus.UNPROCESSABLE_CONTENT.getCode());
             var invalidPage = new UrlPage();

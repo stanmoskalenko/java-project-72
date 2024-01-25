@@ -40,7 +40,7 @@ public class UrlCheckService {
     }
 
     protected static List<UrlCheckComponent> getChecksByUrlId(Long urlId) {
-        var checks = UrlCheckRepository.find(urlId);
+        var checks = UrlCheckRepository.findById(urlId);
         return checks.stream()
                 .map(UrlCheckComponent::new)
                 .toList();
@@ -56,13 +56,13 @@ public class UrlCheckService {
             var check = xmlToUrlCheck(response.getBody(), urlId, response.getStatus());
             UrlCheckRepository.save(check);
             var successAlert = new Alert(CHECKED_SUCCESS, Alert.TYPE.SUCCESS);
-            var checks = UrlCheckRepository.find(urlId).stream()
+            var checks = UrlCheckRepository.findById(urlId).stream()
                     .map(UrlCheckComponent::new)
                     .toList();
             urlPage.setChecks(checks);
             urlPage.setAlert(successAlert);
         } catch (Exception e) {
-            var checks = UrlCheckRepository.find(urlId).stream()
+            var checks = UrlCheckRepository.findById(urlId).stream()
                     .map(UrlCheckComponent::new)
                     .toList();
             urlPage.setChecks(checks);

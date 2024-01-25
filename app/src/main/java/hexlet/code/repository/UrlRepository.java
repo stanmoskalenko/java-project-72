@@ -32,7 +32,7 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
-    public static Optional<Url> find(Long id) {
+    public static Optional<Url> findById(Long id) {
         var sql = "SELECT * FROM urls WHERE id = ?";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
@@ -54,31 +54,26 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
-    public static Url getById(Long id) {
-        var sql = "SELECT * FROM urls WHERE id = ?";
+    public static Optional<Url> findByName(String urlName) {
+        var sql = "SELECT * FROM urls WHERE name = ?";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
+            stmt.setString(1, urlName);
             var resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                var name = resultSet.getString("name");
+                var id = resultSet.getLong("id");
                 var createdAt = resultSet.getTimestamp("created_at");
                 var url = new Url();
                 url.setId(id);
-                url.setName(name);
+                url.setName(urlName);
                 url.setCreatedAt(createdAt);
-                return url;
+                return Optional.of(url);
             }
 
-            return null;
+            return Optional.empty();
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
         }
-    }
-
-    public static boolean existByUrl(String url) {
-        return getEntities().stream()
-                .anyMatch(i -> i.getName().equals(url));
     }
 
     public static List<Url> getEntities() {

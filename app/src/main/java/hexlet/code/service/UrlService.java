@@ -1,6 +1,5 @@
 package hexlet.code.service;
 
-import hexlet.code.dto.Alert;
 import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
@@ -47,7 +46,7 @@ public class UrlService {
     }
 
     public static UrlPage getUrlById(Long id) {
-        var url = UrlRepository.find(id)
+        var url = UrlRepository.findById(id)
                 .orElseThrow(() -> new NotFoundResponse("Entity with id = " + id + " not found"));
         var urlPage = new UrlPage(url);
         var checks = UrlCheckService.getChecksByUrlId(url.getId());
@@ -56,27 +55,14 @@ public class UrlService {
         return urlPage;
     }
 
-    public static UrlsPage create(String name) {
+    public static boolean isAlreadyExist(String urlName) {
+        return UrlRepository.findByName(normalizeUrl(urlName)).isPresent();
+    }
+
+    public static void create(String name) {
         var url = new Url();
         var normalizeUrl = normalizeUrl(name);
         url.setName(normalizeUrl);
-        var urlsPage = new UrlsPage();
-
-        if (UrlRepository.existByUrl(normalizeUrl)) {
-            var infoAlert = new Alert(URL_ALREADY_EXIST, Alert.TYPE.INFO);
-            urlsPage.setAlert(infoAlert);
-        } else {
-            UrlRepository.save(url);
-            var successAlert = new Alert(URL_ADDED_SUCCESS, Alert.TYPE.SUCCESS);
-            urlsPage.setAlert(successAlert);
-        }
-        urlsPage.setUrls(UrlRepository.getEntities());
-        urlsPage.getUrls()
-                .forEach(urlPage -> {
-                    var checks = UrlCheckService.getChecksByUrlId(urlPage.getId());
-                    urlPage.setChecks(checks);
-                });
-
-        return urlsPage;
+        UrlRepository.save(url);
     }
 }
