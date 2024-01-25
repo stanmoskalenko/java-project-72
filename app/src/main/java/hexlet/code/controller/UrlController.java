@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import hexlet.code.dto.Alert;
 import hexlet.code.dto.UrlPage;
+import hexlet.code.repository.UrlRepository;
 import hexlet.code.service.UrlService;
 import hexlet.code.utils.JtePagePath;
 import hexlet.code.utils.JteTemplateEngine;
@@ -50,11 +51,12 @@ public class UrlController {
                     .check(UrlController::isUrl, INVALID_URL)
                     .getOrThrow(ValidationException::new);
 
-            if (UrlService.isAlreadyExist(name)) {
+            var urlName = UrlService.normalizeUrl(name);
+            if (UrlRepository.findByName(urlName).isPresent()) {
                 ctx.sessionAttribute(JteTemplateEngine.FLASH_MESSAGE_KEY, URL_ALREADY_EXIST);
                 ctx.sessionAttribute(JteTemplateEngine.FLASH_TYPE_KEY, Alert.TYPE.INFO);
             } else {
-                UrlService.create(name);
+                UrlService.create(urlName);
                 ctx.sessionAttribute(JteTemplateEngine.FLASH_MESSAGE_KEY, URL_ADDED_SUCCESS);
                 ctx.sessionAttribute(JteTemplateEngine.FLASH_TYPE_KEY, Alert.TYPE.SUCCESS);
             }

@@ -11,10 +11,7 @@ import java.net.URL;
 
 public class UrlService {
 
-    private static final String URL_ALREADY_EXIST = "Страница уже существует";
-    private static final String URL_ADDED_SUCCESS = "Страница успешно добавлена";
-
-    private static String normalizeUrl(String value) {
+    public static String normalizeUrl(String value) {
         try {
             var url = new URL(value);
             var host = url.getHost();
@@ -55,14 +52,9 @@ public class UrlService {
         return urlPage;
     }
 
-    public static boolean isAlreadyExist(String urlName) {
-        return UrlRepository.findByName(normalizeUrl(urlName)).isPresent();
-    }
-
     public static void create(String name) {
         var url = new Url();
-        var normalizeUrl = normalizeUrl(name);
-        url.setName(normalizeUrl);
+        url.setName(name);
         UrlRepository.save(url);
     }
 }
